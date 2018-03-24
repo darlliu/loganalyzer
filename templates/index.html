@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  
+  <meta charset='utf-8'>
+  <title>Log Analyzer Statistics</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js" ></script>
+  <script type="text/javascript" src="https://www.google.com/jsapi" ></script>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js" ></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+</head>
+
+<body>
+  <div class="container">
+    <div class="row">
+       <div id="trend" style="width: 1200px; height: 500px"></div>
+    </div>
+    <div class="row">
+      <div class="col-md-4">
+        <table class="table">
+          <caption> Tops (Current)</caption>
+        </table>
+      </div>
+      <div class="col-md-4">
+        <table class="table">
+          <caption> Spikes (Current)</caption>
+        </table>
+      </div>
+      <div class="col-md-4">
+        <table class="table">
+          <caption> Historic Highs</caption>
+        </table>
+      </div>
+    </div>
+    <div class="row">
+      <p class="navbar-text" style="max-height:900px;min-height:100px; resize: none">
+      Notifications
+      </p>
+    </div>
+  </div>
+  <script type="text/javascript">
+    google.charts.load('current', {'packages':['corechart']});
+    google.charts.setOnLoadCallback(Update);
+
+    function Update(){
+      var jsonData = $.ajax({
+        url: "/data",
+        dataType: "json",
+        async: false
+      }).responseText;
+
+      var data = google.visualization.arrayToDataTable([
+          ['Year', 'Traffic', 'delta'],
+          ['2004',  1000,      -400],
+          ['2005',  1170,      460],
+          ['2006',  660,       110],
+          ['2007',  1030,      -540]
+      ]);
+
+      var options = {
+        title : 'Traffic and Change in traffic',
+        vAxis: {title: 'Traffic/Change'},
+        hAxis: {title: 'Date'},
+        series: {0: {type: 'line'}},
+        series: {1: {type: 'bars'}}
+      };
+
+
+      var chart = new google.visualization.ComboChart(document.getElementById('trend'));
+
+      chart.draw(data, options);
+      chart2.draw(data, options);
+    }
+  </script>
+</body>
+
+</html>
+

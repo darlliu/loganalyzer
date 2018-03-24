@@ -7,21 +7,15 @@
 # 5, design a good data structure with room for additional functionalities
 # 6, perform tests using synthetic data
 from const import *
-import re
 import numpy as np
 import pandas as pd
-import socket
-
-PARSING_RE=re.compile("""^(\S+) (\S+) (\S+) \[([^\]]+)\] """+
-        """"([A-Z]+) ([^ "]+) HTTP/[0-9.]+" ([0-9]{3}) ([0-9]+|-)*$""")
-
 
 ### Data classes
 class LogRecord(object):
     """
     Stores a series of timestamps and metadata from logs
-    Has a maximum storage age of 2 min and can retrieve
-    values in any intervals, e.g. 10 sec
+    Has a maximum storage age of (2 min) and can retrieve
+    values in fixed intervals, e.g. (10 sec)
     """
     def __init__(self):
         self.times=[]
@@ -61,22 +55,9 @@ class LogStore(LogRecord):
         self.data={}
         super(LogStore,self).__init__()
         return
-    def add_record(self, s):
-        #first, parse s assuming it follows the Common Log Format
-        ip, uid, user, time_str, method, url, code, sz=PARSING_RE.match(s).groups()
-        time=parser.parse(time_str.replace(":"," ",1))
-        sz = int(sz)
-        code=int(sz)
-        try:
-            ip=socket.inet_aton(ip)
-        except socket.error:
-            raise ValueError("log ip has wrong format".format(s[0]))
-        section=url.split("/")
-        if len(section)>1:
-            section=section[1]
-        else:
-            section="/"
-        #this parsing is simplistic but should work in almost all circumstances
+    def add_record(self, val):
+        ip,uid,user,time, method, section, code, sz=val
+        #unpack directly here because we expect the argument to be correct at this point
         #store ip
         self.data.setdefault("ip",{}).setdefault(ip,LogRecord()).add(time,sz)
         #store id
@@ -123,12 +104,12 @@ class LogStore(LogRecord):
 
 if __name__=="__main__":
     L=LogStore()
-    time=L.add_record("""127.0.0.1 user-identifier frank [10/Oct/2000:13:55:36 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326""")
-    time=L.add_record("""127.0.0.1 user-identifier frank [10/Oct/2000:13:55:37 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326""")
-    time=L.add_record("""127.0.0.1 user-identifier frank [10/Oct/2000:13:55:38 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326""")
-    time=L.add_record("""127.0.0.1 user-identifier frank [10/Oct/2000:13:55:39 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326""")
-    time=L.add_record("""127.0.0.1 user-identifier frank [10/Oct/2000:13:55:39 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326""")
-    time=L.add_record("""127.0.0.1 user-identifier frank [10/Oct/2000:13:55:40 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326""")
+    time=L.add_record(parseLogStr("""127.0.0.1 user-identifier frank [10/Oct/2000:13:55:36 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326"""))
+    time=L.add_record(parseLogStr("""127.0.0.1 user-identifier frank [10/Oct/2000:13:55:37 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326"""))
+    time=L.add_record(parseLogStr("""127.0.0.1 user-identifier frank [10/Oct/2000:13:55:38 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326"""))
+    time=L.add_record(parseLogStr("""127.0.0.1 user-identifier frank [10/Oct/2000:13:55:39 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326"""))
+    time=L.add_record(parseLogStr("""127.0.0.1 user-identifier frank [10/Oct/2000:13:55:39 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326"""))
+    time=L.add_record(parseLogStr("""127.0.0.1 user-identifier frank [10/Oct/2000:13:55:40 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326"""))
     print L.summarize_stats(time)
     print L.total_traffic(time)
     L.clean(getNow())
