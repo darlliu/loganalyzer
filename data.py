@@ -56,7 +56,7 @@ class LogRecord(object):
                 break
         if start_i>=end_i:
             return pd.Series(),pd.Series()
-        print (t, start_i, end_i, len(self.times))
+        # print (t, start_i, end_i, len(self.times))
         ts,vs = self.times[start_i:end_i], self.vals[start_i:end_i]
         s=pd.Series([1 for i in ts],index=ts)
         s2=pd.Series(vs,index=ts)

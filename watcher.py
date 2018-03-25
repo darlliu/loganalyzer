@@ -92,7 +92,6 @@ def Run(glob_str=GLOB_STR):
     while True:
         CurTime,FP=Update(LS,FP,glob_str)
         #grab traffic data in the past minute
-        print("getting total traffic")
         s1,s2=LS.get(CurTime, TIME_LIMIT_TRAFFIC)
         traffic_json={"cols":[{"id":"","pattern":"","label":"Relative Time","type":"number"},
             {"id":"","pattern":"","label":"Hits", "type":"number"},
@@ -108,10 +107,9 @@ def Run(glob_str=GLOB_STR):
             continue
         traffic_json["rows"]=to_json([-len(s1)+i+1 for i in range(len(s1))],
                 s1.values.tolist(), s2.values.tolist(), grad1.tolist(), grad2.tolist())
-        print("getting other data")
         #format traffic data for google chart, calculating gradients
         data=LS.summarize_stats(CurTime)
-        print(data,len(s1), CurTime)
+        # print(data,len(s1), CurTime)
         #grab stats from the past 10 sec
         out={"traffic":traffic_json}
         out["time"]=CurTime.isoformat()
