@@ -20,7 +20,7 @@ def GetData():
         s= open("tmp.json","r").read()
         js = json.loads(s)
     except IOError, ValueError:
-        js=json.loads("")
+        js=json.loads("{}")
     return jsonify(js)
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Web Server')

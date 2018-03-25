@@ -104,9 +104,10 @@ def Run(glob_str=GLOB_STR):
             sleep(TIME_LIMIT_UDPATE)
             continue
         traffic_json["rows"]=to_json([-len(s1)+i+1 for i in xrange(len(s1))],
-                s1.values, s2.values, grad1, grad2)
+                s1.values.tolist(), s2.values.tolist(), grad1.tolist(), grad2.tolist())
         #format traffic data for google chart, calculating gradients
         data=LS.summarize_stats(CurTime)
+        print data,len(s1)
         #grab stats from the past 10 sec
         out={"traffic":traffic_json}
         out["time"]=CurTime.isoformat()
