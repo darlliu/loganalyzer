@@ -23,6 +23,10 @@ class LogRecord(object):
         self.updated=None
         return
     def add(self,t,v):
+        if self.updated!=None and (t-self.updated).total_seconds()<0:
+            #we only allow incremental t, if t is older than last update
+            #there is likely some issue with the log and we should skip
+            return
         self.updated=t
         self.times.append(t)
         self.vals.append(v)
@@ -44,24 +48,19 @@ class LogRecord(object):
         self.clean(t)
         if len(self.times) and (self.times[0]-t).total_seconds()>0:
             return pd.Series(),pd.Series()
-        start_i=0
-        end_i=len(self.times)
         for idx, cur_t in enumerate(self.times):
             if (t-cur_t).total_seconds()<=delta:
                 start_i=idx
                 break
-        for idx, cur_t in enumerate(self.times):
-            if (t-cur_t).total_seconds()<=TIME_LIMIT_UPDATE:
-                end_i=idx+1
-                break
-        if start_i>=end_i:
+        else:
+            #result is empty
             return pd.Series(),pd.Series()
         # print (t, start_i, end_i, len(self.times))
-        ts,vs = self.times[start_i:end_i], self.vals[start_i:end_i]
+        ts,vs = self.times[idx:], self.vals[idx:]
         s=pd.Series([1 for i in ts],index=ts)
         s2=pd.Series(vs,index=ts)
-        return s.groupby([pd.Grouper(freq="S")]).sum(),\
-                s2.groupby([pd.Grouper(freq="S")]).sum()
+        return s.resample("1s").sum(),\
+                s2.resample("1s").sum()
 
     def __str__(self):
         return """ Updated: {} - Times:...{} Data: ...{} """.format(self.updated,
