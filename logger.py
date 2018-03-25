@@ -21,7 +21,7 @@ urls={"/":1024,"/info":2241,"/help":4028,"/contact":514,
 print("Starting to log, press CTRL+C to stop generating data")
 while True:
     mean =  (np.sin(time())+1)*10
-    cnts = np.random.normal(mean, mean*2, 10)
+    cnts = np.random.normal(mean, mean, 10)
     for cnt in cnts:
         if cnt<0: cnt=0
         time_str = getTimeStr()
