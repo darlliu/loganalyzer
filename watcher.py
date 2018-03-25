@@ -99,9 +99,9 @@ def Run(glob_str=GLOB_STR):
             {"id":"","pattern":"","label":"Hits(delta)", "type":"number"},
             {"id":"","pattern":"","label":"Bytes(delta)", "type":"number"},
             ]}
-        if len(s1)>3:
+        try:
             grad1,grad2=np.gradient(s1), np.gradient(s2)
-        else:
+        except ValueError:
             #need to wait a bit for the update
             sleep(TIME_LIMIT_UPDATE)
             continue

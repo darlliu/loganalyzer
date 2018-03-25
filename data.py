@@ -40,7 +40,7 @@ class LogRecord(object):
     def clean(self, t=None):
         if t is None:
             t = self.updated
-        if len(self.times) and (t-self.times[0]).total_seconds() > TIME_LIMIT_TOTAL:
+        if self.times and (t-self.times[0]).total_seconds() > TIME_LIMIT_TOTAL:
             #remove records that are too old
             for idx, cur_t in enumerate(self.times):
                 if (t-cur_t).total_seconds() <= TIME_LIMIT_CUTOFF:
@@ -51,7 +51,7 @@ class LogRecord(object):
 
     def get(self, t, delta=TIME_LIMIT_INTERVAL):
         self.clean(t)
-        if len(self.times) and (self.times[0]-t).total_seconds() > 0:
+        if self.times and (self.times[0]-t).total_seconds() > 0:
             return pd.Series(), pd.Series()
         for idx, cur_t in enumerate(self.times):
             if (t-cur_t).total_seconds() <= delta:
