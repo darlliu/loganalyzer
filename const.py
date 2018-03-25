@@ -13,9 +13,16 @@ TIME_LIMIT_TOTAL=150
 # total is larger than cutoff to avoid having to truncate too often
 TIME_LIMIT_INTERVAL=10
 #interval for calculating stats, seconds
-TIME_LIMIT_UPDATE=1000
-#update interval in ms
+TIME_LIMIT_TRAFFIC=60
+#interval for retrieving traffic data to plot, seconds
+TIME_LIMIT_UPDATE=5
+#update interval in seconds
 
+HIGH_HITS_CUTOFF=10500
+HIGH_BYTES_CUTOFF=137544295
+#cutoffs for issueing warnings
+
+GLOB_STR="./test_logs.log*"
 PARSING_RE=re.compile("""^(\S+) (\S+) (\S+) \[([^\]]+)\] """+
         """"([A-Z]+) ([^ "]+) HTTP/[0-9.]+" ([0-9]{3}) ([0-9]+|-)*$""")
 
@@ -48,5 +55,5 @@ def parseLogStr(s):
     if len(section)>1:
         section=section[1]
     else:
-        section="/"
+        section=""
     return ip,uid,user,time, method, section, code, sz

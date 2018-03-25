@@ -17,64 +17,93 @@
 <body>
   <div class="container">
     <div class="row">
+      <h4 id="header1">
+      Simple Log Analyzer, results are updated every 5s
+      </h4>
+
+    </div>
+    <div class="row">
+      <button type="button" class="btn btn-primary" onclick="togglehits();">
+        Click to switch between hits vs bytes
+      </button>
+    </div>
+    <div class="row">
        <div id="trend" style="width: 1200px; height: 500px"></div>
     </div>
     <div class="row">
       <div class="col-md-4">
-        <table class="table">
-          <caption> Tops (Current)</caption>
-        </table>
+          <h5> Total Traffic Spikes (Last 60s)</h5>
+          <div class="well" id="spikes"></div>
       </div>
       <div class="col-md-4">
-        <table class="table">
-          <caption> Spikes (Current)</caption>
-        </table>
+          <h5> Tops Sections (Last 10s)</h5>
+          <div class="well" id="sections"></div>
       </div>
       <div class="col-md-4">
-        <table class="table">
-          <caption> Historic Highs</caption>
-        </table>
+          <h5> Other Stats (on 120s intervals)</h5>
+          <div class="well" id="historic"></div>
       </div>
     </div>
     <div class="row">
-      <p class="navbar-text" style="max-height:900px;min-height:100px; resize: none">
+      <h5> Past alerts (on 120s intervals)</h5>
+      <p class="navbar-text" id="warnings" style="max-height:500px;min-height:100px; resize: none">
       Notifications
       </p>
     </div>
   </div>
   <script type="text/javascript">
+    
     google.charts.load('current', {'packages':['corechart']});
     google.charts.setOnLoadCallback(Update);
-
+    var hits=1;
+    var options1 = {
+      title : 'Traffic and Change in the past 60 seconds',
+      vAxis: {title: 'Traffic and Change /hits'},
+      hAxis: {title: 'Relative time before update /seconds'},
+      series: {0: {type: 'line'}},
+      series: {1: {type: 'bars'}},
+    };
+    var options2 = {
+      title : 'Traffic and Change in the past 60 seconds',
+      vAxis: {title: 'Traffic and Change /bytes'},
+      hAxis: {title: 'Relative time before update /seconds'},
+      series: {0: {type: 'line'}},
+      series: {1: {type: 'bars'}},
+    };
+    function togglehits(){
+      hits=!hits;
+    }
     function Update(){
-      var jsonData = $.ajax({
+      $.ajax({
         url: "/data",
         dataType: "json",
-        async: false
-      }).responseText;
-
-      var data = google.visualization.arrayToDataTable([
-          ['Year', 'Traffic', 'delta'],
-          ['2004',  1000,      -400],
-          ['2005',  1170,      460],
-          ['2006',  660,       110],
-          ['2007',  1030,      -540]
-      ]);
-
-      var options = {
-        title : 'Traffic and Change in traffic',
-        vAxis: {title: 'Traffic/Change'},
-        hAxis: {title: 'Date'},
-        series: {0: {type: 'line'}},
-        series: {1: {type: 'bars'}}
-      };
-
-
-      var chart = new google.visualization.ComboChart(document.getElementById('trend'));
-
-      chart.draw(data, options);
-      chart2.draw(data, options);
+        complete: function(data){
+          console.log(data.responseJSON)
+          data=data.responseJSON
+          var viz_data = new google.visualization.DataTable(data["traffic"]);
+          var view = new google.visualization.DataView(viz_data);
+          var chart = new google.visualization.ComboChart(document.getElementById('trend'));
+          document.getElementById("header1").innerHTML="Simple Log Analyzer, results are updated every 5s, latest: "+data["time"]
+          if (hits){
+            view.setColumns([0,1,3]);
+            chart.draw(view, options1);
+            document.getElementById("sections").innerHTML=data["top_stats_hits"]
+            document.getElementById("spikes").innerHTML=data["grad_hits"]
+            document.getElementById("warnings").innerHTML=data["warnings"]["hits"]
+            document.getElementById("historic").innerHTML=data["historic"]["hits"]
+            document.getElementById("sections").innerHTML=data["top_stats_hits"]
+          } else {
+            view.setColumns([0,2,4]);
+            chart.draw(view, options2);
+            document.getElementById("sections").innerHTML=data["top_stats_bytes"]
+            document.getElementById("spikes").innerHTML=data["grad_bytes"]
+            document.getElementById("warnings").innerHTML=data["warnings"]["bytes"]
+            document.getElementById("historic").innerHTML=data["historic"]["bytes"]
+          }
+        }
+      })
     }
+    setInterval(Update,5000);
   </script>
 </body>
 

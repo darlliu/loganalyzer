@@ -20,9 +20,10 @@ urls={"/":1024,"/info":2241,"/help":4028,"/contact":514,
         "/large":55231,"/small":223, "/small2":110,"/large2":44512}
 print "Starting to log, press CTRL+C to stop generating data"
 while True:
-    mean =  (np.sin(time())+1)*100
-    cnts = np.random.normal(mean, mean/2, 10)
+    mean =  (np.sin(time())+1)*10
+    cnts = np.random.normal(mean, mean*2, 10)
     for cnt in cnts:
+        if cnt<0: cnt=0
         time_str = getTimeStr()
         for i in xrange(int(cnt)):
             url,sz=choice(urls.items())
@@ -30,6 +31,7 @@ while True:
                     "user":choice(users),"request":choice(reqs),"url":url,
                     "status":200, "time": time_str}
             logger.error(FMT.format(**d))
+        sleep(0.1)
     sleep(0.5)
 else:
     logger.error(FMT.format(**d))

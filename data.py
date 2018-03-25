@@ -26,7 +26,12 @@ class LogRecord(object):
         self.updated=t
         self.times.append(t)
         self.vals.append(v)
-        if t-self.times[0]>timedelta(seconds=TIME_LIMIT_TOTAL):
+        self.clean(t)
+        return
+    def clean(self, t=None):
+        if t is None:
+            t=self.updated
+        if len(self.times) and t-self.times[0]>timedelta(seconds=TIME_LIMIT_TOTAL):
             #remove records that are too old
             for idx, cur_t in enumerate(self.times):
                 if t-cur_t<=timedelta(seconds=TIME_LIMIT_CUTOFF):
@@ -34,7 +39,9 @@ class LogRecord(object):
             self.vals=self.vals[idx:]
             self.times=self.times[idx:]
         return
+
     def get(self, t, delta=TIME_LIMIT_INTERVAL):
+        self.clean(t)
         for idx, cur_t in enumerate(self.times):
             if t-cur_t<=timedelta(seconds=delta):
                 break
@@ -84,11 +91,21 @@ class LogStore(LogRecord):
         Total traffic is calculated in the past 2 min while some 
         other stats are calculated in the past 10 sec
         """
-        out = {key:{} for key in self.data}
+        data = {key:{} for key in self.data}
         for key in self.data:
             for item, record in  self.data[key].items():
                 vals=record.get(cutoff_time)
-                out[key][item]={"total_hits":vals[0], "total_bytes":vals[1],}
+                data[key][item]=(vals[0].sum(),vals[1].sum())
+        out={}
+        for k1 in data:
+            max_hit=sorted(data[k1].values(),key=lambda x: x[0])[-1][0]
+            max_byte=sorted(data[k1].values(), key=lambda x: x[1])[-1][1]
+            top_hits=["Section: /{}, traffic: {} (hits)".format(k,v[0]) 
+                    for k,v in data[k1].items() if v[0]==max_hit]
+            top_bytes=["Section: /{}, traffic: {} (bytes)".format(k,v[1]) 
+                    for k,v in data[k1].items() if v[1]==max_byte]
+            #there could be multiple sections with the top hits/bytes
+            out[k1]={"top_hits":top_hits, "top_bytes":top_bytes}
         return out
 
     def total_traffic(self,t=None):
