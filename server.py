@@ -26,7 +26,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Web Server')
     parser.add_argument('--port', type=int, help='Port number for deployment', default=8787)
     parser.add_argument('--debug', action='store_true', help='Run in debug mode')
+    parser.add_argument('--files', default=None, help='Pattern for log files, leave empty for test_logs.log*')
     args = parser.parse_args()
+    if args.files!=None:
+        GLOB_STR=str(args.files)
     p=Process(target=Run, args=(GLOB_STR,))
     p.start()
     atexit.register(lambda: p.terminate())

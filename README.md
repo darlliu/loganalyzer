@@ -1,9 +1,9 @@
 ### HTTP log monitoring console program
 ### Author : Yu Liu
 
-Please read the attached writeup.pdf for more information and test demonstartions.
+Please read the attached writeup.pdf for more information and test demonstrations.
 
-####Quick Start
+#### Quick Start
 
 
 1. Required python packages: dateutils, flask, pandas, numpy, json 
