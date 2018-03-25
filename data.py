@@ -80,7 +80,7 @@ class LogStore(LogRecord):
     def clean(self, t):
         "remove records that are too old to be useful"
         for key in self.data:
-            for rec in self.data[key].keys():
+            for rec in list(self.data[key].keys()):
                 if t- self.data[key][rec].updated > timedelta(seconds=TIME_LIMIT_CUTOFF):
                     self.data[key].pop(rec)
         return
@@ -93,17 +93,17 @@ class LogStore(LogRecord):
         """
         data = {key:{} for key in self.data}
         for key in self.data:
-            for item, record in  self.data[key].items():
+            for item, record in  list(self.data[key].items()):
                 vals=record.get(cutoff_time)
                 data[key][item]=(vals[0].sum(),vals[1].sum())
         out={}
         for k1 in data:
-            max_hit=sorted(data[k1].values(),key=lambda x: x[0])[-1][0]
-            max_byte=sorted(data[k1].values(), key=lambda x: x[1])[-1][1]
+            max_hit=sorted(list(data[k1].values()),key=lambda x: x[0])[-1][0]
+            max_byte=sorted(list(data[k1].values()), key=lambda x: x[1])[-1][1]
             top_hits=["Section: /{}, traffic: {} (hits)".format(k,v[0]) 
-                    for k,v in data[k1].items() if v[0]==max_hit]
+                    for k,v in list(data[k1].items()) if v[0]==max_hit]
             top_bytes=["Section: /{}, traffic: {} (bytes)".format(k,v[1]) 
-                    for k,v in data[k1].items() if v[1]==max_byte]
+                    for k,v in list(data[k1].items()) if v[1]==max_byte]
             #there could be multiple sections with the top hits/bytes
             out[k1]={"top_hits":top_hits, "top_bytes":top_bytes}
         return out
@@ -127,7 +127,7 @@ if __name__=="__main__":
     time=L.add_record(parseLogStr("""127.0.0.1 user-identifier frank [10/Oct/2000:13:55:39 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326"""))
     time=L.add_record(parseLogStr("""127.0.0.1 user-identifier frank [10/Oct/2000:13:55:39 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326"""))
     time=L.add_record(parseLogStr("""127.0.0.1 user-identifier frank [10/Oct/2000:13:55:40 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326"""))
-    print L.summarize_stats(time)
-    print L.total_traffic(time)
+    print(L.summarize_stats(time))
+    print(L.total_traffic(time))
     L.clean(getNow())
-    print L.data
+    print(L.data)

@@ -19,7 +19,7 @@ def GetData():
     try:
         s= open("tmp.json","r").read()
         js = json.loads(s)
-    except IOError, ValueError:
+    except IOError as ValueError:
         js=json.loads("{}")
     return jsonify(js)
 if __name__ == '__main__':
