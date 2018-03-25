@@ -15,7 +15,7 @@ TIME_LIMIT_INTERVAL=10
 #interval for calculating stats, seconds
 TIME_LIMIT_TRAFFIC=60
 #interval for retrieving traffic data to plot, seconds
-TIME_LIMIT_UPDATE=5
+TIME_LIMIT_UPDATE=2
 #update interval in seconds
 
 HIGH_HITS_CUTOFF=10500

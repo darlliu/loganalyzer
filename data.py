@@ -31,10 +31,10 @@ class LogRecord(object):
     def clean(self, t=None):
         if t is None:
             t=self.updated
-        if len(self.times) and t-self.times[0]>timedelta(seconds=TIME_LIMIT_TOTAL):
+        if len(self.times) and (t-self.times[0]).total_seconds()>TIME_LIMIT_TOTAL:
             #remove records that are too old
             for idx, cur_t in enumerate(self.times):
-                if t-cur_t<=timedelta(seconds=TIME_LIMIT_CUTOFF):
+                if (t-cur_t).total_seconds()<=TIME_LIMIT_CUTOFF:
                     break
             self.vals=self.vals[idx:]
             self.times=self.times[idx:]
@@ -42,8 +42,11 @@ class LogRecord(object):
 
     def get(self, t, delta=TIME_LIMIT_INTERVAL):
         self.clean(t)
+        print (t, self.times[0], self.times[-1])
+        if len(self.times) and (self.times[0]-t).total_seconds()>0:
+            return pd.Series(),pd.Series()
         for idx, cur_t in enumerate(self.times):
-            if t-cur_t<=timedelta(seconds=delta):
+            if (t-cur_t).total_seconds()<=delta:
                 break
         t,v = self.times[idx:], self.vals[idx:]
         s=pd.Series([1 for i in t],index=t)
@@ -81,7 +84,7 @@ class LogStore(LogRecord):
         "remove records that are too old to be useful"
         for key in self.data:
             for rec in list(self.data[key].keys()):
-                if t- self.data[key][rec].updated > timedelta(seconds=TIME_LIMIT_CUTOFF):
+                if (t- self.data[key][rec].updated).total_seconds() > TIME_LIMIT_CUTOFF:
                     self.data[key].pop(rec)
         return
 
@@ -106,17 +109,6 @@ class LogStore(LogRecord):
                     for k,v in list(data[k1].items()) if v[1]==max_byte]
             #there could be multiple sections with the top hits/bytes
             out[k1]={"top_hits":top_hits, "top_bytes":top_bytes}
-        return out
-
-    def total_traffic(self,t=None):
-        """
-        Returns some running stats of total traffic.
-        """
-        if t is None:
-            t=getNow()
-        hits,szs=self.get(t)
-        out = {"hits":hits, "bytes":szs, "hits_gradient":np.gradient(hits),
-                "bytes_gradient":np.gradient(szs)}
         return out
 
 if __name__=="__main__":

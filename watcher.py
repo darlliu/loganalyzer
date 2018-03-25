@@ -51,21 +51,23 @@ def Update(ls,fp=None,glob_str=GLOB_STR):
             val=parseLogStr(line)
             if val is None: continue
             time=val[3]
+            if (cur_time-time).total_seconds()<0:
+                #if we seeked to the incorrect position, abort
+                return cur_time,None
             if startTime==None:
-                td=cur_time-time
-                if td<timedelta(seconds=TIME_LIMIT_CUTOFF):
+                if (cur_time-time).total_seconds()<TIME_LIMIT_CUTOFF:
                     #start logging
                     ls.add_record(val)
                     startTime=time
                 else: continue
             else:
                 ls.add_record(val)
-                if (cur_time-time)<=timedelta(microseconds=TIME_LIMIT_UPDATE):
+                if (cur_time-time).total_seconds()<=TIME_LIMIT_UPDATE:
                     endTime=time
                     break
     if time!=None and endTime is None:
         endTime=time
-    if startTime!=None and endTime!=None and endTime-startTime > timedelta(seconds=1):
+    if startTime!=None and endTime!=None and (endTime-startTime).total_seconds() > 1:
         return cur_time, cur_fp
     return cur_time,None
 
@@ -90,6 +92,7 @@ def Run(glob_str=GLOB_STR):
     while True:
         CurTime,FP=Update(LS,FP,glob_str)
         #grab traffic data in the past minute
+        print "getting total traffic"
         s1,s2=LS.get(CurTime, TIME_LIMIT_TRAFFIC)
         traffic_json={"cols":[{"id":"","pattern":"","label":"Relative Time","type":"number"},
             {"id":"","pattern":"","label":"Hits", "type":"number"},
@@ -107,7 +110,7 @@ def Run(glob_str=GLOB_STR):
                 s1.values.tolist(), s2.values.tolist(), grad1.tolist(), grad2.tolist())
         #format traffic data for google chart, calculating gradients
         data=LS.summarize_stats(CurTime)
-        print(data,len(s1))
+        print(data,len(s1), CurTime)
         #grab stats from the past 10 sec
         out={"traffic":traffic_json}
         out["time"]=CurTime.isoformat()
