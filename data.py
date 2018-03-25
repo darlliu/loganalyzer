@@ -42,15 +42,24 @@ class LogRecord(object):
 
     def get(self, t, delta=TIME_LIMIT_INTERVAL):
         self.clean(t)
-        print (t, self.times[0], self.times[-1])
         if len(self.times) and (self.times[0]-t).total_seconds()>0:
             return pd.Series(),pd.Series()
+        start_i=0
+        end_i=len(self.times)
         for idx, cur_t in enumerate(self.times):
             if (t-cur_t).total_seconds()<=delta:
+                start_i=idx
                 break
-        t,v = self.times[idx:], self.vals[idx:]
-        s=pd.Series([1 for i in t],index=t)
-        s2=pd.Series(v,index=t)
+        for idx, cur_t in enumerate(self.times):
+            if (t-cur_t).total_seconds()<=TIME_LIMIT_UPDATE:
+                end_i=idx+1
+                break
+        if start_i>=end_i:
+            return pd.Series(),pd.Series()
+        print (t, start_i, end_i, len(self.times))
+        ts,vs = self.times[start_i:end_i], self.vals[start_i:end_i]
+        s=pd.Series([1 for i in ts],index=ts)
+        s2=pd.Series(vs,index=ts)
         return s.groupby([pd.Grouper(freq="S")]).sum(),\
                 s2.groupby([pd.Grouper(freq="S")]).sum()
 
